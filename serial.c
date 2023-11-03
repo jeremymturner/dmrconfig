@@ -732,7 +732,12 @@ again:
     }
 
     // Terminate the string.
-    reply[8] = 0;
+    if(reply[3] == '7') {
+        reply[7] = 0;
+    } else {
+        reply[8] = 0;
+    }
+
     return (char*)&reply[1];
 }
 

@@ -50,6 +50,7 @@ static struct {
     { "DM-1701",    &radio_rt84 },      // Baofeng DM-1701, Retevis RT84
     { "MD-760P",    &radio_gd77 },      // Radioddity GD-77, version 3.1.1 and later
     { "D868UVE",    &radio_d868uv },    // Anytone AT-D868UV
+    { "D578UV",     &radio_d578uv },    // Anytone AT-D868UV
     { "D878UV",     &radio_d878uv },    // Anytone AT-D878UV
     { "D6X2UV",     &radio_dmr6x2 },    // BTECH DMR-6x2
     { "ZD3688",     &radio_d900 },      // Zastone D900
@@ -102,8 +103,12 @@ void radio_connect()
     }
     if (! ident) {
         // Try AT-D868UV.
-        if (serial_init(0x28e9, 0x018a) >= 0)
+        if (serial_init(0x28e9, 0x018a) >= 0) {
             ident = serial_identify();
+        // Try AT-D578UV
+        } else if(serial_init(0x2e3c, 0x5740) >= 0) {
+            ident = serial_identify();
+        }
     }
     if (! ident) {
         fprintf(stderr, "No radio detected.\n");
@@ -112,6 +117,7 @@ void radio_connect()
     }
 
     for (i=0; radio_tab[i].ident; i++) {
+        printf("%s vs %s\n", ident, radio_tab[i].ident);
         if (strcasecmp(ident, radio_tab[i].ident) == 0) {
             device = radio_tab[i].device;
             break;
@@ -213,6 +219,8 @@ void radio_read_image(const char *filename)
         fseek(img, 0, SEEK_SET);
         if (memcmp(ident, "D868UVE", 7) == 0) {
             device = &radio_d868uv;
+        } else if (memcmp(ident, "D578UV", 6) == 0) {
+            device = &radio_d578uv;
         } else if (memcmp(ident, "D878UV", 6) == 0) {
             device = &radio_d878uv;
         } else if (memcmp(ident, "D6X2UV", 6) == 0) {
